@@ -1,0 +1,4 @@
+/node_modules
+
+# Fix #12: ensure config.env (with secrets) is never committed to git
+/data/config.env
