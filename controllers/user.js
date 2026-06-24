@@ -1,6 +1,6 @@
 import { User } from "../models/user.js";
 import bcrypt from "bcryptjs";
-import { Task } from "../models/task.js";
+// BUG #10 FIX: Removed unused Task import (was imported but never used here)
 import { sendCookie } from "../utils/features.js";
 import ErrorHandler from "../middlewares/error.js";
 
@@ -30,13 +30,13 @@ export const login = async (req, res, next) => {
         const user = await User.findOne({ email }).select("+password");
 
         if (!user) {
-            return next(new ErrorHandler("Invalid email or password", 400));
+            return next(new ErrorHandler("No account found with this email. Please register first.", 404));
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return next(new ErrorHandler("Invalid email or password", 400));
+            return next(new ErrorHandler("Incorrect password. Please try again.", 400));
         }
 
         sendCookie(user, res, `Welcome back, ${user.name}`, 200);
