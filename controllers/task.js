@@ -44,25 +44,38 @@ export const getMyTask = async (req, res, next) => {
 export const updateTask = async (req, res, next) => {
     try {
         const { id } = req.params;
+        const { title, description } = req.body;
 
-        // Fix #8: filter by both id AND the logged-in user to prevent unauthorized access
         const task = await Task.findOne({ _id: id, user: req.user._id });
 
         if (!task) {
             return next(new ErrorHandler("Task Not Found", 404));
         }
 
+        // If title or description sent → edit mode
+        if (title !== undefined || description !== undefined) {
+            if (title !== undefined) task.title = title.trim() || task.title;
+            if (description !== undefined) task.description = description.trim() || task.description;
+            await task.save();
+            return res.status(200).json({
+                success: true,
+                message: "Task edited successfully",
+            });
+        }
+
+        // Otherwise → toggle isCompleted (checkbox click)
         task.isCompleted = !task.isCompleted;
         await task.save();
 
         res.status(200).json({
             success: true,
-            message: "Task Updated Successfully",
+            message: task.isCompleted ? "Task marked as complete ✓" : "Task marked as incomplete",
         });
     } catch (error) {
         next(error);
     }
 };
+
 
 export const deleteTask = async (req, res, next) => {
     try {
